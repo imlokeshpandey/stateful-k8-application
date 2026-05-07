@@ -1,12 +1,88 @@
-# stateful-k8-application
-1. Overview
+## What This Project Demonstrates
 
-This proof-of-concept demonstrates how to deploy and operate a stateful LevelDB-based application on Kubernetes with:
+This PoC demonstrates how to deploy a stateful Node.js application using embedded LevelDB on Kubernetes with:
 
-Persistent and resilient storage
-Automatic recovery from pod/node failures
-Snapshot-based backup and restore using LVM + Restic
-Monitoring, alerting, and observability
-Production-oriented migration and scaling strategy
+- Kubernetes StatefulSet deployment
+- OpenEBS LocalPV-LVM dynamic provisioning
+- LVM-backed persistent storage
+- PersistentVolumeClaim-based storage mounting
+- Readiness and liveness health probes
+- Restic backup automation with six-hour RPO
+- Backup restore workflows
+- Bare-metal Kubernetes storage architecture
+- Pod failure recovery validation
+- Node failure recovery strategy
 
-The application stores approximately 2 TB of persistent data per pod and requires an RPO (Recovery Point Objective) of 6 hours.
+## Architecture Overview
+
+Client
+→ Kubernetes Service
+→ StatefulSet Pod
+→ PVC
+→ OpenEBS LVM CSI
+→ LVM Volume Group
+→ Physical NVMe SSD
+
+
+## Prerequisites
+
+- Kubernetes cluster (bare metal or VM-based)
+- kubectl configured
+- Helm installed
+- OpenEBS installed
+- Available worker-node disk for LVM
+- Linux nodes with LVM2 installed
+- Docker installed for building Node.js image
+
+## Infrastructure Preparation
+
+### Create LVM Physical Volume
+
+```bash
+pvcreate /dev/nvme1n1
+```
+
+### Create Volume Group
+
+```bash
+vgcreate lvmvg1 /dev/nvme1n1
+```
+
+
+block.
+
+---
+
+
+
+## Project Structure
+
+```text
+leveldb-k8s-poc/
+│
+├── README.md
+│
+├── app/
+│   ├── Dockerfile
+│   ├── package.json
+│   ├── package-lock.json
+│   └── server.js
+│
+├── kubernetes/
+│   ├── namespace.yaml
+│   ├── storageclass.yaml
+│   ├── pvc.yaml
+│   ├── service.yaml
+│   ├── statefulset.yaml
+│   ├── backup-secret.yaml
+│   ├── backup-cronjob.yaml
+│
+│
+├── diagrams/
+│   ├── architecture.png
+│   ├── deployment-flow.png
+│   ├── backup-flow.png
+│   └── recovery-flow.png
+│
+└── scripts/
+    └── prepare-lvm.sh
