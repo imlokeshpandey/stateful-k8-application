@@ -1,0 +1,41 @@
+apiVersion: batch/v1
+kind: Job
+
+metadata:
+  name: leveldb-restore
+  namespace: leveldb-nodeapp-poc
+
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+
+      containers:
+        - name: restore
+
+          image: restic/restic
+
+          command:
+            - /bin/sh
+            - -c
+            - |
+              restic restore latest --target /data
+
+          env:
+            - name: RESTIC_REPOSITORY
+              value: "s3:http://minio:9000/backups"
+
+            - name: RESTIC_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: restic-secret
+                  key: RESTIC_PASSWORD
+
+          volumeMounts:
+            - name: restore-storage
+              mountPath: /data
+
+      volumes:
+        - name: restore-storage
+          persistentVolumeClaim:
+            claimName: leveldb-pvc

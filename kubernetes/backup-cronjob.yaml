@@ -1,0 +1,58 @@
+apiVersion: batch/v1
+kind: CronJob
+
+metadata:
+  name: leveldb-backup
+  namespace: leveldb-nodeapp-poc
+
+spec:
+  schedule: "0 */20 * * *"
+
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+
+          containers:
+            - name: backup
+
+              image: ubuntu:22.04
+
+              command:
+                - /bin/bash
+                - -c
+                - |
+                  apt update
+                  apt install -y lvm2 curl bzip2
+
+                  curl -LO https://github.com/restic/restic/releases/download/v0.16.4/restic_0.16.4_linux_amd64.bz2
+
+                  bunzip2 restic_0.16.4_linux_amd64.bz2
+
+                  chmod +x restic_0.16.4_linux_amd64
+
+                  mv restic_0.16.4_linux_amd64 /usr/local/bin/restic
+
+                  chmod +x /scripts/lvm-restic-backup.sh
+
+                  /scripts/lvm-restic-backup.sh
+
+              env:
+                - name: RESTIC_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: restic-secret
+                      key: RESTIC_PASSWORD
+
+              volumeMounts:
+                - name: backup-script
+                  mountPath: /scripts
+
+          volumes:
+            - name: backup-script
+              configMap:
+                name: backup-script-config

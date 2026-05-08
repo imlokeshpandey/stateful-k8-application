@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: StatefulSet
+
+metadata:
+  name: leveldb-app
+  namespace: leveldb-nodeapp-poc
+
+spec:
+  serviceName: leveldb-service
+
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: leveldb
+
+  template:
+    metadata:
+      labels:
+        app: leveldb
+
+    spec:
+      containers:
+        - name: nodejs-app
+
+          image: leveldb-nodejs:v4
+
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - containerPort: 3000
+
+          env:
+            - name: DB_PATH
+              value: /data/leveldb
+
+          volumeMounts:
+            - name: leveldb-storage
+              mountPath: /data
+
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 15
+            periodSeconds: 20
+
+      volumes:
+        - name: leveldb-storage
+          persistentVolumeClaim:
+            claimName: leveldb-pvc
