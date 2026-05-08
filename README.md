@@ -49,8 +49,6 @@ vgcreate lvmvg1 /dev/nvme1n1
 ```
 
 
-block.
-
 ---
 
 
