@@ -10,7 +10,6 @@
 - Creates LVM Volume Group for OpenEBS LocalPV-LVM storage.
 
 ## Kubernetes Worker Nodes
-
 - Kubernetes worker nodes are assumed to have attached block storage devices (NVMe SSD / HDD).
 - OpenEBS LocalPV-LVM operates directly on worker-node local storage.
 
