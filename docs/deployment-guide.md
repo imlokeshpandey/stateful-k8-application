@@ -1,82 +1,64 @@
-# Quick Deployment Steps
+# Deployment, Backup and Restore Guide
 
-## 1. Prepare LVM Storage
+## Deployment Workflow
 
-Make script executable:
+## MANUAL WORKFLOW FOR TESTING 
+
+### Prepare LVM Storage
+
+- Initializes Physical Volumes (PV).
+- Creates LVM Volume Group for OpenEBS LocalPV-LVM storage.
+
+## Kubernetes Worker Nodes
+
+- Kubernetes worker nodes are assumed to have attached block storage devices (NVMe SSD / HDD).
+- OpenEBS LocalPV-LVM operates directly on worker-node local storage.
+
+---
+
 
 ```bash
 chmod +x scripts/prepare-lvm.sh
-```
 
-Run LVM preparation:
-
-```bash
 ./scripts/prepare-lvm.sh
-```
-
-Verify Volume Group:
-
-```bash
-vgs
 ```
 
 ---
 
-## 2. Install OpenEBS
+### Install OpenEBS
 
-Add Helm repository:
+- Installs OpenEBS LocalPV-LVM components inside Kubernetes cluster.
+- Enables dynamic LVM-backed PersistentVolume provisioning.
 
 ```bash
 helm repo add openebs https://openebs.github.io/openebs
-```
 
-Update repositories:
-
-```bash
 helm repo update
-```
 
-Install OpenEBS:
-
-```bash
 helm install openebs openebs/openebs \
 -n openebs \
 --create-namespace
 ```
 
-Verify installation:
-
-```bash
-kubectl get pods -n openebs
-```
-
 ---
 
-## 3. Build Application Image
+### Build Application Image
 
-Navigate to app directory:
+- Builds Docker image for Node.js + LevelDB application.
 
 ```bash
 cd app
-```
 
-Build Docker image:
-
-```bash
 docker build -t leveldb-nodejs:v1 .
-```
 
-Return to repository root:
-
-```bash
 cd ..
 ```
 
 ---
 
-## 4. Deploy Kubernetes Resources
+### Deploy Kubernetes Resources
 
-Deploy manifests:
+- Deploys Namespace, StatefulSet, PVC, Service, Backup CronJob and Restore resources.
 
 ```bash
 kubectl apply -f kubernetes/
@@ -84,41 +66,23 @@ kubectl apply -f kubernetes/
 
 ---
 
-## 5. Verify Storage
+### Verify Deployment
 
-Check PVC:
-
-```bash
-kubectl get pvc -n leveldb-nodeapp-poc
-```
-
-Expected:
-
-```text
-STATUS = Bound
-```
-
----
-
-## 6. Verify Stateful Application
-
-Check pods:
+- Verifies StatefulSet pod and PVC status.
 
 ```bash
 kubectl get pods -n leveldb-nodeapp-poc
-```
 
-Expected:
-
-```text
-leveldb-app-0   Running
+kubectl get pvc -n leveldb-nodeapp-poc
 ```
 
 ---
 
-## 7. Access Application
+# Application Runtime Workflow
 
-Port-forward service:
+### Port Forward Service
+
+- Exposes Kubernetes service locally for testing.
 
 ```bash
 kubectl port-forward svc/leveldb-service 3000:3000 \
@@ -127,7 +91,9 @@ kubectl port-forward svc/leveldb-service 3000:3000 \
 
 ---
 
-## 8. Write Test Data
+### Write Test Data
+
+- Writes sample data into LevelDB persistent storage.
 
 ```bash
 curl localhost:3000/write
@@ -135,7 +101,9 @@ curl localhost:3000/write
 
 ---
 
-## 9. Read Stored Data
+### Read Stored Data
+
+- Validates persistent data stored inside PVC-backed LevelDB.
 
 ```bash
 curl localhost:3000/read
@@ -149,50 +117,54 @@ hello-leveldb
 
 ---
 
-## 10. Validate Persistence
+# Backup Workflow
 
-Delete pod:
+## Kubernetes CronJob
 
-```bash
-kubectl delete pod leveldb-app-0 \
--n leveldb-nodeapp-poc
-```
-
-Wait for pod recreation:
-
-```bash
-kubectl get pods -n leveldb-nodeapp-poc
-```
-
-Read data again:
-
-```bash
-curl localhost:3000/read
-```
-
-Expected:
-
-```text
-hello-leveldb
-```
+- Runs backup workflow automatically based on configured RPO.
+- Creates temporary Kubernetes backup pod.
 
 ---
 
-## 11. Trigger Backup
+## Mount PersistentVolumeClaim
 
-Make backup script executable:
+- Backup pod mounts the same PVC used by StatefulSet application.
+- Provides access to OpenEBS-backed persistent storage.
+
+---
+
+## Create LVM Snapshot
+
+- Backup script creates point-in-time LVM snapshot of active LevelDB volume.
+- Minimizes performance impact on running workloads.
+
+---
+
+## Restic Incremental Backup
+
+- Restic performs incremental backup against mounted snapshot volume.
+- Reduces backup transfer size and IO overhead.
+
+---
+
+## Remote Repository Upload
+
+- Backup snapshots are uploaded to remote object storage (S3 / MinIO).
+- Provides disaster recovery capability outside Kubernetes nodes.
+
+---
+
+### Trigger Manual Backup
 
 ```bash
 chmod +x scripts/backup-test.sh
-```
 
-Run backup:
-
-```bash
 ./scripts/backup-test.sh
 ```
 
-Verify jobs:
+---
+
+### Verify Backup Job
 
 ```bash
 kubectl get jobs -n leveldb-nodeapp-poc
@@ -200,28 +172,64 @@ kubectl get jobs -n leveldb-nodeapp-poc
 
 ---
 
-## 12. Trigger Restore
+### Verify Backup Logs
 
-Make restore script executable:
+```bash
+kubectl logs <backup-pod-name> \
+-n leveldb-nodeapp-poc
+```
+
+---
+
+# Restore Workflow
+
+## Trigger Restore Job
+
+- Kubernetes restore job connects to remote Restic repository.
+- Starts restore workflow for persistent storage recovery.
+
+---
+
+## Restore Data To PVC
+
+- Restic restores backup data directly into PersistentVolumeClaim storage.
+- Restored data becomes available to StatefulSet pods.
+
+---
+
+## Restart StatefulSet
+
+- StatefulSet pod remounts restored persistent storage.
+- Application restarts using recovered LevelDB data.
+
+---
+
+## Validate Restored Data
+
+- Application API validates successful restore operation.
+
+---
+
+### Trigger Restore
 
 ```bash
 chmod +x scripts/restore-test.sh
-```
 
-Run restore:
-
-```bash
 ./scripts/restore-test.sh
 ```
 
-Restart StatefulSet:
+---
+
+### Restart StatefulSet
 
 ```bash
 kubectl rollout restart statefulset leveldb-app \
 -n leveldb-nodeapp-poc
 ```
 
-Validate restored data:
+---
+
+### Validate Restored Data
 
 ```bash
 curl localhost:3000/read
@@ -232,3 +240,43 @@ Expected:
 ```text
 hello-leveldb
 ```
+
+---
+
+# CI/CD Workflow - AUTOMATION
+
+## GitHub Push
+
+- Developer pushes application or Kubernetes manifest changes to GitHub repository.
+
+---
+
+## GitHub Actions Pipeline
+
+- CI/CD pipeline automatically starts deployment workflow.
+
+---
+
+## Docker Image Build
+
+- Builds updated Node.js application image.
+
+---
+
+## Push Image To Registry
+
+- Pushes container image to Docker registry.
+
+---
+
+## Deploy Kubernetes Manifests
+
+- Deploys updated StatefulSet and Kubernetes resources.
+
+---
+
+## StatefulSet Rollout
+
+- Kubernetes performs rolling update of application pods.
+
+---
