@@ -78,9 +78,9 @@ leveldb-k8s-poc/
 │
 ├── diagrams/
 │   ├── architecture.png
-│   ├── deployment-flow.png
-│   ├── backup-flow.png
-│   └── recovery-flow.png
+│   ├── appdeployment-cicd.png
+│   ├── backup_restore-flow.png
+│   └── observability.png
 │
 └── scripts/
     └── prepare-lvm.sh
