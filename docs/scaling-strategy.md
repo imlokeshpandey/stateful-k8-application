@@ -17,3 +17,9 @@ The architecture also supports PVC expansion for increasing storage capacity whe
 
 ###Future or proposed Autiscaling.
 - If we need HPA to be implemented we can tweak applications and we need to explore if we can gave sharding or replication in place or either could implement primary Write and secondary read data implementaion. But this approach also need our application to also support sharding and replications at level DB layer.
+
+The current architecture uses a single active StatefulSet replica because LevelDB is an embedded local database and does not provide native multi-node synchronization.
+
+Multiple Kubernetes worker nodes are used for infrastructure resiliency, node recovery and operational scalability rather than active-active database replication.
+
+In case of node failure, workloads can be restored on replacement nodes using backup and restore workflows.
