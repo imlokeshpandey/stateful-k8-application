@@ -1,4 +1,5 @@
 # What This Project Demonstrates
+Stateful Kubernetes PoC using Node.js + LevelDB with OpenEBS LocalPV-LVM, Restic backups and disaster recovery workflows.
 
 Below are some strategies on how to deploy a stateful Node.js application using embedded LevelDB on Kubernetes with:
 
