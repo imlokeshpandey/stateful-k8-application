@@ -117,3 +117,8 @@ leveldb-k8s-poc/
 └── scripts/
     └── prepare-lvm.sh
 ```
+Future horizontal scaling approaches or enhancements:
+
+- application-aware sharding
+- read-only replica patterns
+- external synchronization services
