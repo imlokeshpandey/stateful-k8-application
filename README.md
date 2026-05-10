@@ -43,7 +43,7 @@ Physical NVMe SSD
 
 # Prerequisites
 
-- Kubernetes cluster (bare metal or VM-based)
+- Kubernetes cluster - BM/VM 
 - kubectl configured
 - Helm installed
 - OpenEBS installed
@@ -110,7 +110,7 @@ leveldb-k8s-poc/
 │
 ├── diagrams/
 │   ├── architecture.png
-│   ├── appdeployment-cicd.png
+│   ├── ci-cd.png
 │   ├── backup_restore-flow.png
 │   └── observability.png
 │
