@@ -1,6 +1,6 @@
-## What This Project Demonstrates
+# What This Project Demonstrates
 
-This PoC demonstrates how to deploy a stateful Node.js application using embedded LevelDB on Kubernetes with:
+Below are some strategies on how to deploy a stateful Node.js application using embedded LevelDB on Kubernetes with:
 
 - Kubernetes StatefulSet deployment
 - OpenEBS LocalPV-LVM dynamic provisioning
@@ -9,22 +9,39 @@ This PoC demonstrates how to deploy a stateful Node.js application using embedde
 - Readiness and liveness health probes
 - Restic backup automation with six-hour RPO
 - Backup restore workflows
-- Bare-metal Kubernetes storage architecture
+- Kubernetes storage architecture
 - Pod failure recovery validation
 - Node failure recovery strategy
 
-## Architecture Overview
+---
 
+# Architecture Overview
+
+```text
 Client
-→ Kubernetes Service
-→ StatefulSet Pod
-→ PVC
-→ OpenEBS LVM CSI
-→ LVM Volume Group
-→ Physical NVMe SSD
+    |
+    v
+Kubernetes Service
+    |
+    v
+StatefulSet Pod
+    |
+    v
+PersistentVolumeClaim (PVC)
+    |
+    v
+OpenEBS LVM CSI
+    |
+    v
+LVM Volume Group
+    |
+    v
+Physical NVMe SSD
+```
 
+---
 
-## Prerequisites
+# Prerequisites
 
 - Kubernetes cluster (bare metal or VM-based)
 - kubectl configured
@@ -34,26 +51,42 @@ Client
 - Linux nodes with LVM2 installed
 - Docker installed for building Node.js image
 
-## Infrastructure Preparation
+---
 
-### Create LVM Physical Volume
+# Infrastructure Preparation
+
+## Infrastructure Provisioning Assumption
+
+This PoC assumes the Kubernetes cluster and worker nodes are already provisioned.
+
+In production environments, infrastructure provisioning can be automated using Terraform for:
+
+- bare-metal VM provisioning
+- Kubernetes control-plane and worker-node setup
+- network configuration
+- storage node preparation
+
+The following steps demonstrate manual LVM preparation on Kubernetes worker nodes for OpenEBS LocalPV-LVM storage.
+
+---
+
+## Create LVM Physical Volume
 
 ```bash
 pvcreate /dev/nvme1n1
 ```
 
-### Create Volume Group
+---
+
+## Create Volume Group
 
 ```bash
 vgcreate lvmvg1 /dev/nvme1n1
 ```
 
-
 ---
 
-
-
-## Project Structure
+# Project Structure
 
 ```text
 leveldb-k8s-poc/
@@ -75,7 +108,6 @@ leveldb-k8s-poc/
 │   ├── backup-secret.yaml
 │   ├── backup-cronjob.yaml
 │
-│
 ├── diagrams/
 │   ├── architecture.png
 │   ├── appdeployment-cicd.png
@@ -84,3 +116,4 @@ leveldb-k8s-poc/
 │
 └── scripts/
     └── prepare-lvm.sh
+```
