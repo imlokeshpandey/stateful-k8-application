@@ -2,12 +2,18 @@
 
 ## Monitoring and Alerting
 
-The PoC can be integrated with:
+In this  to monitor the application stack and infra , this can be integrated with:
 
 - Prometheus for metrics collection
 - Grafana for dashboards and visualization
 - Alertmanager for alert routing
 - Slack for operational alert notifications
+
+Implementation approach:
+
+- Prometheus can scrape Kubernetes and application metrics using ServiceMonitors.
+- Grafana dashboards can visualize pod health, PVC usage and backup metrics.
+- Alertmanager can send alerts to Slack for pod failures, storage issues and backup failures.
 
 Example monitoring scope:
 
@@ -26,6 +32,12 @@ Centralized logging can be implemented using:
 - Elasticsearch for log storage
 - Kibana for log visualization and troubleshooting
 
+Implementation approach:
+
+- Fluent Bit can run as a DaemonSet on all Kubernetes worker nodes.
+- DaemonSet pods automatically collect container and node logs from each node.
+- Logs can be forwarded to Elasticsearch and visualized in Kibana dashboards.
+
 Key log sources:
 
 - StatefulSet application logs
@@ -34,18 +46,3 @@ Key log sources:
 - OpenEBS storage logs
 
 ---
-
-## Security Considerations
-
-The PoC currently uses:
-
-- Kubernetes Secrets for backup credentials
-- isolated Kubernetes namespace
-- PVC-based storage isolation
-
-Future improvements may include:
-
-- RBAC policies
-- NetworkPolicies
-- Vault-based secret management
-- TLS-enabled object storage communication
