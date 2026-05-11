@@ -69,24 +69,6 @@ In production environments, infrastructure provisioning can be automated using T
 
 The following steps demonstrate manual LVM preparation on Kubernetes worker nodes for OpenEBS LocalPV-LVM storage.
 
----
-
-## Create LVM Physical Volume
-
-```bash
-pvcreate /dev/nvme1n1
-```
-
----
-
-## Create Volume Group
-
-```bash
-vgcreate lvmvg1 /dev/nvme1n1
-```
-
----
-
 # Project Structure
 
 ```text
