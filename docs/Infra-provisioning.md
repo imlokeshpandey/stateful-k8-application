@@ -41,3 +41,30 @@ terraform/
 ├── workers.tf
 └── modules/
 ```
+
+## Step 1 — Prepare LVM Storage - MANUAL APPROACH for POC Purpose only.
+
+Initializes Physical Volumes (PV) and creates LVM Volume Groups for OpenEBS LocalPV-LVM storage provisioning.
+
+### Manual PoC Setup
+
+For PoC and local testing environments, LVM storage can be prepared manually using the provided bootstrap script.
+
+```bash
+chmod +x scripts/prepare-lvm.sh
+
+./scripts/prepare-lvm.sh
+```
+
+---
+
+### Production Automation Approach
+
+In production environments, worker-node LVM preparation can be automated using configuration management tools such as Ansible during Kubernetes node bootstrap.
+
+Typical automation scope:
+
+- install `lvm2` packages
+- initialize Physical Volumes (PV)
+- create Volume Groups (VG)
+- prepare storage for OpenEBS LocalPV-LVM
