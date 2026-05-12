@@ -79,23 +79,32 @@ leveldb-k8s-poc/
 ├── app/
 │   ├── Dockerfile
 │   ├── package.json
-│   ├── package-lock.json
 │   └── server.js
 │
 ├── kubernetes/
+│   ├── backup-cronjob.yaml
+│   ├── backup-secret.yaml
 │   ├── namespace.yaml
-│   ├── storageclass.yaml
+│   ├── pdb.yaml
 │   ├── pvc.yaml
+│   ├── restore-job.yaml
 │   ├── service.yaml
 │   ├── statefulset.yaml
-│   ├── backup-secret.yaml
-│   ├── backup-cronjob.yaml
+│   └── storageclass.yaml
+|   └── vpa.yaml
 │
 ├── diagrams/
-│   ├── architecture.png
-│   ├── ci-cd.png
+│   ├── CI-CD.png
 │   ├── backup_restore-flow.png
-│   └── observability.png
+│   ├── observability.png
+│   └── architecture.png
+│
+├── docs/
+│   ├── infra-provisioning.md
+│   ├── app-deployment-guide.md
+│   ├── migration-strategy.md
+│   ├── scaling-strategy.md
+│   └── trade-off.md
 │
 └── scripts/
     └── prepare-lvm.sh
